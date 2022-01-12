@@ -132,9 +132,11 @@ func (h *handler) handleBatch(msgs []*jsonrpcMessage) {
 
 // handleMsg handles a single message.
 func (h *handler) handleMsg(msg *jsonrpcMessage) {
+	log.Info("MESSAGE: ", msg.String())
 	if ok := h.handleImmediate(msg); ok {
 		return
 	}
+	log.Info("CONTINUE")
 	h.startCallProc(func(cp *callProc) {
 		answer := h.handleCallMsg(cp, msg)
 		h.addSubscriptions(cp.notifiers)
@@ -334,6 +336,7 @@ func (h *handler) handleCall(cp *callProc, msg *jsonrpcMessage) *jsonrpcMessage 
 		return msg.errorResponse(&invalidParamsError{err.Error()})
 	}
 	start := time.Now()
+	log.Info("FROM HANDLE CALL ", msg.String())
 	answer := h.runMethod(cp.ctx, msg, callb, args)
 
 	// Collect the statistics for RPC calls if metrics is enabled.
@@ -387,6 +390,7 @@ func (h *handler) handleSubscribe(cp *callProc, msg *jsonrpcMessage) *jsonrpcMes
 // runMethod runs the Go callback for an RPC method.
 func (h *handler) runMethod(ctx context.Context, msg *jsonrpcMessage, callb *callback, args []reflect.Value) *jsonrpcMessage {
 	result, err := callb.call(ctx, msg.Method, args)
+	log.Info("RESULT: ", result)
 	if err != nil {
 		return msg.errorResponse(err)
 	}

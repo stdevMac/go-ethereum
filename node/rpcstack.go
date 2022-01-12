@@ -403,6 +403,7 @@ func newVHostHandler(vhosts []string, next http.Handler) http.Handler {
 // ServeHTTP serves JSON-RPC requests over HTTP, implements http.Handler
 func (h *virtualHostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// if r.Host is not set, we can continue serving since a browser would set the Host header
+	log.Info("REQUEST RECEIVED: ", r)
 	if r.Host == "" {
 		h.next.ServeHTTP(w, r)
 		return

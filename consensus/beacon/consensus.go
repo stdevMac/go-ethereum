@@ -19,6 +19,7 @@ package beacon
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -65,6 +66,10 @@ func New(ethone consensus.Engine) *Beacon {
 		panic("nested consensus engine")
 	}
 	return &Beacon{ethone: ethone}
+}
+
+func (beacon *Beacon) GetEth1() *ethash.Ethash {
+	return beacon.ethone.(*ethash.Ethash)
 }
 
 // Author implements consensus.Engine, returning the verified author of the block.
@@ -295,6 +300,7 @@ func (beacon *Beacon) FinalizeAndAssemble(chain consensus.ChainHeaderReader, hea
 // Note, the method returns immediately and will send the result async. More
 // than one result may also be returned depending on the consensus algorithm.
 func (beacon *Beacon) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) error {
+
 	if !beacon.IsPoSHeader(block.Header()) {
 		return beacon.ethone.Seal(chain, block, results, stop)
 	}

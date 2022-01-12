@@ -19,6 +19,8 @@ package miner
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/consensus/beacon"
+	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"math/big"
 	"sync"
 	"time"
@@ -83,10 +85,28 @@ func New(eth Backend, config *Config, chainConfig *params.ChainConfig, mux *even
 	return miner
 }
 
+func (miner *Miner) MineHash(hash *common.Hash, result chan types.BlockNonce, stop chan struct{}) {
+	timestemp := uint64(time.Now().Unix())
+	parent := miner.worker.chain.CurrentHeader()
+	difficulty := ethash.CalcDifficulty(miner.worker.chainConfig, timestemp, parent)
+	log.Info("Performing pow with difficulty ", difficulty.String())
+	go miner.engine.(*beacon.Beacon).GetEth1().MineHash(hash, difficulty, parent.Number.Uint64()+1, 0, 0, stop, result)
+}
+
+func (miner *Miner) PropagateBlock(block *types.Block) {
+	log.Info("CURR HEADER ", block.Header().Number.String())
+	//receipt, err := core.ApplyTransaction(miner.worker.chainConfig, miner.worker.chain, &miner.coinbase,
+	_, err := miner.worker.chain.WriteBlockAndSetHead(block, make([]*types.Receipt, 0), make([]*types.Log, 0), miner.worker.current.state.Copy(), true)
+	if err != nil {
+		log.Error("ERROR AAAAAAA")
+	}
+}
+
 // update keeps track of the downloader events. Please be aware that this is a one shot type of update loop.
 // It's entered once and as soon as `Done` or `Failed` has been broadcasted the events are unregistered and
 // the loop is exited. This to prevent a major security vuln where external parties can DOS you with blocks
 // and halt your mining operation for as long as the DOS continues.
+
 func (miner *Miner) update() {
 	defer miner.wg.Done()
 

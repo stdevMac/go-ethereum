@@ -22,6 +22,7 @@ import (
 	crand "crypto/rand"
 	"encoding/json"
 	"errors"
+	"github.com/ethereum/go-ethereum/log"
 	"math"
 	"math/big"
 	"math/rand"
@@ -125,6 +126,42 @@ func (ethash *Ethash) Seal(chain consensus.ChainHeaderReader, block *types.Block
 		pend.Wait()
 	}()
 	return nil
+}
+
+func (ethash *Ethash) MineHash(headerHash *common.Hash, difficulty *big.Int, blockNumber uint64, id int, seed uint64, abort chan struct{}, found chan types.BlockNonce) {
+	var (
+		target    = new(big.Int).Div(two256, difficulty)
+		dataset   = ethash.dataset(blockNumber, false)
+		nonce     = seed
+		powBuffer = new(big.Int)
+	)
+
+	for {
+		select {
+		case <-abort:
+			log.Info("Work aborted")
+			break
+		default:
+			_, result := hashimotoFull(dataset.dataset, headerHash.Bytes(), nonce)
+			if powBuffer.SetBytes(result).Cmp(target) <= 0 {
+				// Correct nonce found, create a new header with it
+
+				// Seal and return a block (if still needed)
+				select {
+				case found <- types.EncodeNonce(nonce):
+					log.Info("Ethash nonce found and reported", "attempts", nonce-seed, "nonce", nonce)
+				case <-abort:
+					log.Info("Ethash nonce found but discarded", "attempts", nonce-seed, "nonce", nonce)
+				}
+				break
+			}
+			nonce++
+		}
+	}
+}
+
+func (ethash *Ethash) PropagateBlock(block *types.Block) {
+
 }
 
 // mine is the actual proof-of-work miner that searches for a nonce starting from

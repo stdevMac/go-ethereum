@@ -99,6 +99,22 @@ func NewPrivateMinerAPI(e *Ethereum) *PrivateMinerAPI {
 // usable by this process. If mining is already running, this method adjust the
 // number of threads allowed to use and updates the minimum price required by the
 // transaction pool.
+
+func (api *PrivateMinerAPI) Mine(headerHash *common.Hash) types.BlockNonce {
+	log.Info("PERFORM MINING ON ", headerHash.String())
+	resultCh := make(chan types.BlockNonce)
+	stopCh := make(chan struct{})
+	go api.e.Miner().MineHash(headerHash, resultCh, stopCh)
+	result := <-resultCh
+	return result
+}
+
+func (api *PrivateMinerAPI) PropagateBlock(header *types.Header, txs []*types.Transaction) {
+	block := types.NewBlock(header, txs, make([]*types.Header, 0), make([]*types.Receipt, 0), trie.NewStackTrie(nil))
+	log.Info("Propagating block ", block)
+	go api.e.Miner().PropagateBlock(block)
+}
+
 func (api *PrivateMinerAPI) Start(threads *int) error {
 	if threads == nil {
 		return api.e.StartMining(runtime.NumCPU())
