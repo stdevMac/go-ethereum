@@ -87,9 +87,9 @@ func New(eth Backend, config *Config, chainConfig *params.ChainConfig, mux *even
 func (miner *Miner) MineHash(hash *common.Hash, result chan types.BlockNonce, stop chan struct{}) {
 	//timestemp := uint64(time.Now().Unix())
 	parent := miner.worker.chain.CurrentHeader()
-	difficulty := big.NewInt(0)
+	difficulty := big.NewInt(131072)
 	// ethash.CalcDifficulty(miner.worker.chainConfig, timestemp, parent)
-	log.Info("Performing pow with difficulty ", difficulty)
+	//log.Info("Performing pow with difficulty ", difficulty)
 	go miner.engine.(*beacon.Beacon).GetEth1().MineHash(hash, difficulty, parent.Number.Uint64()+1, 0, 0, stop, result)
 }
 
@@ -98,7 +98,7 @@ func (miner *Miner) PropagateBlock(block *types.Block) {
 	//receipt, err := core.ApplyTransaction(miner.worker.chainConfig, miner.worker.chain, &miner.coinbase,
 	_, err := miner.worker.chain.WriteBlockAndSetHead(block, make([]*types.Receipt, 0), make([]*types.Log, 0), miner.worker.current.state.Copy(), true)
 	if err != nil {
-		log.Error("Couldn't propagate block", err)
+		log.Error("Couldn't propagate block", "err", err)
 	}
 }
 
