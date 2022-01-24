@@ -1,0 +1,8 @@
+tap "ethereum/ethereum"
+tap "heroku/brew"
+tap "homebrew/bundle"
+tap "homebrew/cask"
+tap "homebrew/core"
+tap "nethermindeth/nethermind"
+brew "gmp"
+brew "mbedtls"
