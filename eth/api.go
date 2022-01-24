@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/miner"
 	"io"
 	"math/big"
 	"os"
@@ -100,11 +101,10 @@ func NewPrivateMinerAPI(e *Ethereum) *PrivateMinerAPI {
 // number of threads allowed to use and updates the minimum price required by the
 // transaction pool.
 
-func (api *PrivateMinerAPI) Mine(headerHash *common.Hash) types.BlockNonce {
+func (api *PrivateMinerAPI) Mine(headerHash *common.Hash) miner.MockMine {
 	log.Info("PERFORM MINING ON ", headerHash.String())
-	resultCh := make(chan types.BlockNonce)
-	stopCh := make(chan struct{})
-	go api.e.Miner().MineHash(headerHash, resultCh, stopCh)
+	resultCh := make(chan miner.MockMine)
+	go api.e.Miner().MineHash(headerHash, resultCh)
 	result := <-resultCh
 	return result
 }
