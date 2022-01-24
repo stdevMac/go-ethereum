@@ -109,10 +109,10 @@ func (api *PrivateMinerAPI) Mine(headerHash *common.Hash) miner.MockMine {
 	return result
 }
 
-func (api *PrivateMinerAPI) PropagateBlock(header *types.Header, txs []*types.Transaction) {
-	block := types.NewBlock(header, txs, make([]*types.Header, 0), make([]*types.Receipt, 0), trie.NewStackTrie(nil))
+func (api *PrivateMinerAPI) PropagateBlock(block types.Block) {
+	//block := types.NewBlock(header, txs, make([]*types.Header, 0), make([]*types.Receipt, 0), trie.NewStackTrie(nil))
 	log.Info("Propagating block ", block)
-	go api.e.Miner().PropagateBlock(block)
+	go api.e.Miner().PropagateBlock(&block)
 }
 
 func (api *PrivateMinerAPI) Start(threads *int) error {
