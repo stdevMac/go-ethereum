@@ -19,7 +19,6 @@ package miner
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/consensus/beacon"
 	"math/big"
 	"sync"
 	"time"
@@ -40,6 +39,11 @@ import (
 type Backend interface {
 	BlockChain() *core.BlockChain
 	TxPool() *core.TxPool
+}
+
+type MockMine struct {
+	Nonce   types.BlockNonce
+	MixHash string
 }
 
 // Config is the configuration parameters of mining.
@@ -84,13 +88,22 @@ func New(eth Backend, config *Config, chainConfig *params.ChainConfig, mux *even
 	return miner
 }
 
-func (miner *Miner) MineHash(hash *common.Hash, result chan types.BlockNonce, stop chan struct{}) {
+func (miner *Miner) MineHash(hash *common.Hash, result chan MockMine) {
 	//timestemp := uint64(time.Now().Unix())
-	parent := miner.worker.chain.CurrentHeader()
+	//parent := miner.worker.chain.CurrentHeader()
 	difficulty := big.NewInt(0)
+	//var nonce types.BlockNonce
+	mixHash := "c80a206814881ca8dd651f28c87548dce58a11f73494c76db0e8ef9b5f56fc20"
+	nonce := types.EncodeNonce(5320978804327211322)
 	// ethash.CalcDifficulty(miner.worker.chainConfig, timestemp, parent)
 	log.Info("Performing pow with difficulty ", difficulty)
-	go miner.engine.(*beacon.Beacon).GetEth1().MineHash(hash, difficulty, parent.Number.Uint64()+1, 0, 0, stop, result)
+	//go miner.engine.(*beacon.Beacon).GetEth1().MineHash(hash, difficulty, parent.Number.Uint64()+1, 0, 0, stop, result)
+	go func() {
+		result <- MockMine{
+			Nonce:   nonce,
+			MixHash: mixHash,
+		}
+	}()
 }
 
 func (miner *Miner) PropagateBlock(block *types.Block) {
