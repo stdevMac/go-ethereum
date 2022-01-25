@@ -109,10 +109,14 @@ func (api *PrivateMinerAPI) Mine(headerHash *common.Hash) miner.MockMine {
 	return result
 }
 
-func (api *PrivateMinerAPI) PropagateBlock(block types.Block) {
-	//block := types.NewBlock(header, txs, make([]*types.Header, 0), make([]*types.Receipt, 0), trie.NewStackTrie(nil))
-	log.Info("Propagating block ", block)
-	go api.e.Miner().PropagateBlock(&block)
+func (api *PrivateMinerAPI) PropagateBlock(blockRlp string) {
+	//block, err := geth.NewBlockFromRLP(blockRlp)
+	//if err != nil {
+	//	log.Error("Error decoding block rlp")
+	//	return
+	//}
+	log.Info("Mocking propagation of block received as rlp: ", blockRlp)
+	//go api.e.Miner().PropagateBlock(block)
 }
 
 func (api *PrivateMinerAPI) Start(threads *int) error {
